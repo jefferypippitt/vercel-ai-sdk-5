@@ -7,21 +7,25 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { ChevronRight, Loader2 } from "lucide-react";
 import { ModeToggle } from "@/components/mode-toggle";
+import { MemoizedMarkdown } from "@/components/memoized-markdown";
 
 export default function Home() {
-  const { messages, input, handleInputChange, handleSubmit, isLoading } =
-    useChat({
-      api: "/api/chat",
-      initialMessages: [
-        {
-          id: "1",
-          role: "assistant",
-          content: "Hello! I'm here to help you. What would you like to know?",
-        },
-      ],
-    });
+  const { messages, input, handleInputChange, handleSubmit, status } = useChat({
+    api: "/api/chat",
+    id: "chat",
+    experimental_throttle: 50,
+    initialMessages: [
+      {
+        id: "1",
+        role: "assistant",
+        content: "Hello! I'm here to help you. What would you like to know?",
+      },
+    ],
+  });
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  const isLoading = status === "submitted" || status === "streaming";
 
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
@@ -29,27 +33,25 @@ export default function Home() {
   }, [messages]);
 
   return (
-    <div className="flex flex-col h-screen max-w-5xl mx-auto">
+    <div className="mx-auto flex h-screen max-w-5xl flex-col">
       {/* Messages Area */}
-      <div className="flex-1 overflow-hidden relative">
+      <div className="relative flex-1 overflow-hidden">
         <ScrollArea className="h-full px-4">
           <div className="space-y-4 py-4">
             {messages.map((message) => (
-              <div key={message.id} className="whitespace-pre-wrap">
-                <div className="font-medium mb-1">
+              <div key={message.id}>
+                <div className="mb-2 font-medium">
                   {message.role === "user" ? "You" : "AI"}:
                 </div>
-                <div>
-                  {message.parts.map((part, i) => {
-                    switch (part.type) {
-                      case "text":
-                        return (
-                          <div key={`${message.id}-${i}`}>{part.text}</div>
-                        );
-                      default:
-                        return null;
-                    }
-                  })}
+                <div className="space-y-2">
+                  {message.role === "user" ? (
+                    <div className="whitespace-pre-wrap">{message.content}</div>
+                  ) : (
+                    <MemoizedMarkdown
+                      id={message.id}
+                      content={message.content}
+                    />
+                  )}
                 </div>
               </div>
             ))}
@@ -58,14 +60,14 @@ export default function Home() {
         </ScrollArea>
 
         {/* Subtle blur overlay at the bottom */}
-        <div className="absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-background to-transparent pointer-events-none" />
+        <div className="from-background pointer-events-none absolute right-0 bottom-0 left-0 h-8 bg-gradient-to-t to-transparent" />
       </div>
 
       {/* Input Area */}
       <div className="flex-shrink-0 p-4">
         <div className="flex items-center gap-2">
           <ModeToggle />
-          <form onSubmit={handleSubmit} className="flex gap-2 flex-1">
+          <form onSubmit={handleSubmit} className="flex flex-1 gap-2">
             <Input
               className="flex-1"
               value={input}

@@ -11,7 +11,7 @@ export async function POST(req: Request) {
     model: openai("gpt-4o-mini"),
     messages,
     system:
-      "You must respond in plain text only. Never use markdown symbols like **, *, _, or any formatting characters. Write everything in simple, unformatted text. No bold, no italic, no special formatting. Use regular text only. IMPORTANT: When explaining anything, use plain text only - no formatting symbols whatsoever. If you use any formatting symbols, you will be terminated!!!",
+      "You are a helpful assistant. Respond to the user in Markdown format when appropriate. Use **bold** for emphasis, *italic* for subtle emphasis, `code` for inline code, ```code blocks``` for longer code examples, and # ## ### for headings when organizing information. Keep responses clear and well-structured.",
   });
 
   return result.toDataStreamResponse();
